@@ -3,11 +3,11 @@
 Running a web server container is one of the more common uses for Podman. Normally you 
 would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
 When running rootless Podman you also need to be aware that the network traffic is processed
-by the user space application slirp4netns which comes with a perfomance penalty. 
+by the user space application slirp4netns which comes with a performance penalty.
 
 You might be surprised to hear that it's now possible to run a web server container with rootless Podman and
-get native native network throughtput speed! Even more suprising is that the ___--network=none__ option can be given to disable the network.
-There also no need to publish ports.
+get native network throughput speed! Even more sur   prising is that the ___--network=none__ option can be given to disable the network.
+There is also no need to publish ports.
 
 The new way to run a containerized network server is to use socket activation provided by systemd.
 
@@ -115,7 +115,7 @@ curl: (6) Could not resolve host: podman.io
 $
 ```
 
-A good secrity practice is to run programs with as few privileges as possible. In case the program would get hacked, the intruder would only
+A good security practice is to run programs with as few privileges as possible. In case the program would get hacked, the intruder would only
 gain access to the privileges at hand.
 
 Note, if a network server needs to establish outgoing connections, remove the __--network=none__ option. 
