@@ -64,7 +64,7 @@ the command `podman generate systemd --new --name CTR`.
 
 I created a container image [__ghcr.io/eriksjolund/socket-activate-echo__](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo)
 that contains a simple echo server that supports socket activation. (The echo server currently has a bit limited functionality. It was written for the
-sole purpose of demonstrating socket activation)
+sole purpose of demonstrating socket activation. Source code can found in the [GitHub repo](https://github.com/eriksjolund/socket-activate-echo/))
 
 Here is an example. Start the echo server sockets
 
