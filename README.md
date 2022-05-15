@@ -42,7 +42,7 @@ SocketMode=0660
 WantedBy=sockets.target
 ```
 
-This Unix socket can be started by my regular user on the host
+This Unix socket can be started by my regular user on the laptop
 
 ```
 $ systemctl --user start podman.socket
