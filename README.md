@@ -3,7 +3,7 @@
 Running a web server container is one of the more common uses for Podman. Normally you 
 would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
 When running rootless Podman you also need to be aware that the network traffic is processed
-by the user space application slirp4netns which comes with a performance penalty.
+by the user space application __slirp4netns__ which comes with a performance penalty.
 
 You might be surprised to hear that it's now possible to run a web server container with rootless Podman and
 get native network throughput speed! Even more sur   prising is that the ___--network=none__ option can be given to disable the network.
