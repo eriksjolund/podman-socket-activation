@@ -50,7 +50,7 @@ $ ls $XDG_RUNTIME_DIR/podman/podman.sock
 /run/user/1000/podman/podman.sock
 $ 
 ```
-The socket can later be used by for instance docker-compose that needs to connect a Docker compatible API socket
+The socket can later be used by for instance __docker-compose__ that needs a Docker-compatible API
 
 ```
 export DOCKER_HOST=$XDG_RUNTIME_DIR/podman/podman.sock
