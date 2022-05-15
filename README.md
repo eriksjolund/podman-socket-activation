@@ -1,6 +1,6 @@
 # Podman socket activation
 
-Running a web server container is one of the more common uses for Podman. Normally you 
+Running a web server container is one of the more common uses for Podman. Normally you
 would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
 When running rootless Podman you also need to be aware that the network traffic is processed
 by the user space application __slirp4netns__ which comes with a performance penalty.
@@ -18,7 +18,7 @@ The new feature is that Podman can now pass such a socket to the container.
 
 Not all software daemons support socket activation but it's getting more popular.
 For instance Apache HTTPD, MariaDB, Gunicorn, Pipewire, CUPS, DBUS all support socket activation support.
- 
+
 On my Fedora laptop, I can find many systemd unit files that are defining sockets for socket activation:
 
 ```
@@ -26,7 +26,7 @@ $  find /usr/lib -name '*.socket' | wc -l
 94
 ```
 
-One of the files is _/usr/lib/systemd/user/podman.socket_ 
+One of the files is _/usr/lib/systemd/user/podman.socket_
 
 ```
 $ cat /usr/lib/systemd/user/podman.socket
@@ -48,7 +48,7 @@ This Unix socket can be started by my regular user on the laptop
 $ systemctl --user start podman.socket
 $ ls $XDG_RUNTIME_DIR/podman/podman.sock
 /run/user/1000/podman/podman.sock
-$ 
+$
 ```
 The socket can later be used by for instance __docker-compose__ that needs a Docker-compatible API
 
@@ -57,7 +57,7 @@ $ export DOCKER_HOST=$XDG_RUNTIME_DIR/podman/podman.sock
 $ docker-compose up
 ```
 
-Podman has supported socket activation of its API service for a long time. 
+Podman has supported socket activation of its API service for a long time.
 More recently, in version 3.4.0, Podman received support for another type of socket activation, namely, socket action
 of containers. Such socket activation can be used in the systemd services that are generated with
 the command `podman generate systemd --new --name CTR`.
@@ -93,11 +93,11 @@ $ echo hello | socat - VSOCK-CONNECT:1:3000
 hello
 ```
 
-An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections from clients. 
+An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections from clients.
 The command-line option __--network=none__ could therefore be used to prevent the container from establishing outgoing connections.
 
 ```
-$ grep -A 9 ExecStart= ~/.config/systemd/user/echo@.service 
+$ grep -A 9 ExecStart= ~/.config/systemd/user/echo@.service
 ExecStart=/usr/bin/podman run \
   --cidfile=%t/%n.ctr-id \
   --cgroups=no-conmon \
@@ -121,9 +121,9 @@ $
 A good security practice is to run programs with as few privileges as possible. In case the program would get hacked, the intruder would only
 gain access to the privileges at hand.
 
-Note: If a network server needs to establish outgoing connections, remove the __--network=none__ option. 
-The native network throughput performance will be limited to the communication passing through
-the socket-activated socket. Other network traffic needs to pass through slirp4netns and get the performance penalty that comes with it. 
+Note: in case a network server needs to establish outgoing connections, remove the __--network=none__ option.
+The native network throughput speed will only be for to the communication passing through
+the socket-activated socket. Other network traffic needs to pass through slirp4netns and get the performance penalty that comes with it.
 
 Note: if your machine is running SELinux, you need to have __container-selinux  2.183.0__ or newer installed.
 If you are using an older version of container-selinux and it does not work, add `--security-opt label=disable` to `podman run` as a work around.
