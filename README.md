@@ -3,6 +3,8 @@
 
 Title suggestions:
 
+* "_How socket activation achieves improved security and native network throughput speed for a container_"
+
 * "_How socket activation lets Podman run a network server even with the container network disabled_"
 
 * "_Improve security and get native network throughput speed by using socket activation_"
