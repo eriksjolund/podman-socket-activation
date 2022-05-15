@@ -87,7 +87,7 @@ systemctl --user daemon-reload
 systemctl --user start echo@demo.socket
 ```
 
-List the listening sockets. In this example they all listen on port 3000.
+List the listening sockets that we will test
 
 ```
 $ ss -lnp | grep 3000
@@ -96,7 +96,9 @@ udp   UNCONN 0      0                                           [::1]:3000      
 tcp   LISTEN 0      4096                                    127.0.0.1:3000             0.0.0.0:*    users:(("systemd",pid=2516,fd=28))
 tcp   LISTEN 0      4096                                        [::1]:3000                [::]:*    users:(("systemd",pid=2516,fd=34))
 v_str LISTEN 0      0                                               *:3000                   *:*    users:(("systemd",pid=2516,fd=36))
-$ 
+$ ss -lx | grep echo | grep u_str
+u_str LISTEN 0      4096          /home/eriksjolund/echo_stream_sock.demo 49486            * 0
+$
 ```
 
 Test the echo server with the program __socat__
