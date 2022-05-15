@@ -6,7 +6,7 @@ When running rootless Podman you also need to be aware that the network traffic 
 by the user space application __slirp4netns__ which comes with a performance penalty.
 
 You might be surprised to hear that it's now possible to run a web server container with rootless Podman and
-get native network throughput speed! Even more sur   prising is that the ___--network=none__ option can be given to disable the network.
+get native network throughput speed! Even more sur   prising is that the __--network=none__ option can be given to disable the network.
 There is also no need to publish ports.
 
 The new way to run a containerized network server is to use socket activation provided by systemd.
