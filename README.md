@@ -62,7 +62,7 @@ More recently, in version 3.4.0, Podman received support for another type of soc
 of containers. Such socket activation can be used in the systemd services that are generated with the command `podman generate systemd --new --name CTR`.
 
 I created a container image _ghcr.io/eriksjolund/socket-activate-echo_ that contains a simple echo server that supports socket activation.
-(The echo server is currently a bit limited in functionality. It was written for the sole purpose of demonstrating socket activation)
+(The echo server currently has a bit limited functionality. It was written for the sole purpose of demonstrating socket activation)
 
 Here is an example. Start the echo server sockets
 
