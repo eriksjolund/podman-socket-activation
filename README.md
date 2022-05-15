@@ -1,6 +1,14 @@
 # Currently a draft
 ## Podman socket activation
 
+Title suggestions:
+
+* "_How socket activation lets Podman run a network server even with the container network disabled_"
+
+* "_Improve security and get native network throughput speed by using socket activation_"
+
+* "_Improve security and get native network throughput speed by using rootless Podman and socket activation_"
+
 Running a web server container is one of the more common uses for Podman. Normally you
 would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
 When running rootless Podman you also need to be aware that the network traffic is processed
