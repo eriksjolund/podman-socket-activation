@@ -134,13 +134,13 @@ A good security practice is to run programs with as few privileges as possible. 
 gain access to the privileges at hand.
 
 Note: in case a network server needs to establish outgoing connections, remove the __--network=none__ option.
-The native network throughput speed will only be for to the communication passing through
-the socket-activated socket. Other network traffic needs to pass through slirp4netns and get the performance penalty that comes with it.
+
+The communication in the "socket-activation" socket has native network throughput speed. Other network traffic needs to pass through slirp4netns and gets the performance penalty that comes with it.
 
 Note: if your machine is running SELinux, you need to have __container-selinux  2.183.0__ or newer installed.
 If you are using an older version of container-selinux and it does not work, add `--security-opt label=disable` to `podman run` as a work around.
 
-More examples of socket activated containers
+More examples of socket-activated containers
 
 * Apache HTTPD, see https://github.com/eriksjolund/socket-activate-httpd
 * MariaDB, see https://github.com/eriksjolund/mariadb-podman-socket-activation
