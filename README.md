@@ -121,7 +121,7 @@ $
 A good security practice is to run programs with as few privileges as possible. In case the program would get hacked, the intruder would only
 gain access to the privileges at hand.
 
-Note, if a network server needs to establish outgoing connections, remove the __--network=none__ option. 
+Note: If a network server needs to establish outgoing connections, remove the __--network=none__ option. 
 The native network throughput performance will be limited to the communication passing through
 the socket-activated socket. Other network traffic needs to pass through slirp4netns and get the performance penalty that comes with it. 
 
