@@ -19,7 +19,7 @@ The new feature is that Podman can now pass such a socket to the container.
 Not all software daemons support socket activation but it's getting more popular.
 For instance Apache HTTPD, MariaDB, Gunicorn, Pipewire, CUPS, DBUS all support socket activation support.
  
-On my Fedora laptop, I can find 94 systemd unit files that are defining sockets for socket activation:
+On my Fedora laptop, I can find many systemd unit files that are defining sockets for socket activation:
 
 ```
 $  find /usr/lib -name '*.socket' | wc -l
