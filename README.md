@@ -53,8 +53,8 @@ $
 The socket can later be used by for instance __docker-compose__ that needs a Docker-compatible API
 
 ```
-export DOCKER_HOST=$XDG_RUNTIME_DIR/podman/podman.sock
-docker-compose up
+$ export DOCKER_HOST=$XDG_RUNTIME_DIR/podman/podman.sock
+$ docker-compose up
 ```
 
 Podman has supported socket activation of its API service for a long time. 
