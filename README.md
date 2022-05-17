@@ -182,7 +182,7 @@ $
 
 Quite a lot of things happend during this web page fetch:
 
-1. __curl__ tries to establish a TCP connection to localhost TCP port 8080 by sending a TCP SYN
+1. __curl__ tries to establish a TCP connection to localhost TCP port 8080 by sending a TCP SYN.
 2. __systemd-socket-activate__ starts `podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd` and let it inherit the socket.
 3. Podman pulls the container image if needed.
 3. Podman starts the Apache HTTP server (__httpd__) in the container and let it inherit the socket.
