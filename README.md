@@ -30,6 +30,8 @@ The new feature is that Podman can now pass such a socket to the container.
 Not all software daemons support socket activation but it's getting more popular.
 For instance Apache HTTPD, MariaDB, Gunicorn, Pipewire, CUPS, DBUS all support socket activation support.
 
+### Podman's socket-activated API service
+
 On my Fedora laptop, I can find many systemd unit files that are defining sockets for socket activation:
 
 ```
@@ -67,6 +69,8 @@ The socket can later be used by for instance __docker-compose__ that needs a Doc
 $ export DOCKER_HOST=$XDG_RUNTIME_DIR/podman/podman.sock
 $ docker-compose up
 ```
+
+### Socket-activated echo server container in a systemd service
 
 Podman has supported socket activation of its API service for a long time.
 More recently, in version 3.4.0, Podman received support for another type of socket activation, namely, socket action
