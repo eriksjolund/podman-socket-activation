@@ -151,10 +151,48 @@ Note: in case a network server needs to establish outgoing connections, remove t
 
 The communication in the "socket-activation" socket has native network throughput speed. Other network traffic needs to pass through slirp4netns and gets the performance penalty that comes with it.
 
-Note: if your machine is running SELinux, you need to have __container-selinux  2.183.0__ or newer installed.
-If you are using an older version of container-selinux and it does not work, add `--security-opt label=disable` to `podman run` as a work around.
+### Socket activate an Apache HTTP server with systemd-socket-activate
 
-More examples of socket-activated containers
+Instead of setting up a systemd service to test out socket activation, an alternative is to use the command-line tool __systemd-socket-activate__.
 
-* Apache HTTPD, see https://github.com/eriksjolund/socket-activate-httpd
-* MariaDB, see https://github.com/eriksjolund/mariadb-podman-socket-activation
+As an example let us use the container image [ghcr.io/eriksjolund/socket-activate-httpd](https://github.com/eriksjolund/socket-activate-httpd/pkgs/container/socket-activate-httpd)
+that contains an Apache HTTP server.
+
+In one shell, launch the container with __systemd-socket-activate__  and __podman run__.
+
+```
+$ systemd-socket-activate -l 8080 podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd
+```
+
+The TCP port number 8080 is only given as an option to __systemd-socket-activate__. The  __--publish__ (__-p__)
+option for `podman run` is not used. As long as no client has connected, only __systemd-socket-activate__ is running.
+
+In another shell, fetch a web page from _localhost:8080_
+
+```
+$ curl -s localhost:8080 | head -6
+<!doctype html>
+<html>
+  <head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Test Page for the HTTP Server on Fedora</title>
+$
+```
+
+Quite a lot of things happend during this web page fetch:
+
+1. __curl__ tries to establish a TCP connection to localhost TCP port 8080 by sending a TCP SYN
+2. __systemd-socket-activate__ starts `podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd` and let it inherit the socket.
+3. Podman pulls the container image if needed.
+3. Podman starts the Apache HTTP server (__httpd__) in the container and let it inherit the socket.
+4. __httpd__ calls accept() to accept the connection.
+5. __httpd__ sends the web page and then closes the connection.
+6. __httpd__ keeps running and is ready to handle any client connections that it may receive on the listening socket.
+
+### Note about SElinux
+
+If your computer is running SELinux, you need to have __container-selinux  2.183.0__ or newer installed.
+If container socket activation via Podman does not work and you are using an older version of
+container-selinux, add `--security-opt label=disable` to `podman run` as a work around.
+
