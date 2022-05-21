@@ -140,7 +140,7 @@ hello
 
 ### Improve security by disabling the network
 
-In case an echo server had a security vulnerability and got compromised it might be used to launch attacks against other PCs or devices on the network.
+In case an echo server would get compromised due to a security vulnerability, it might be used to launch attacks against other PCs or devices on the network.
 An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections on the socket-activated socket it inehrited.
 Luckily, the command-line option __--network=none__, given to `podman run`  in the service unit file, achieves exactly what we need.
 
