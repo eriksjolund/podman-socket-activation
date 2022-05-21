@@ -191,7 +191,7 @@ Quite a lot of things happened during this web page fetch:
 3. Podman pulls the container image if needed.
 3. Podman starts the Apache HTTP server (__httpd__) in the container and let it inherit the socket.
 4. __httpd__ calls accept() to accept the connection.
-5. __httpd__ sends the web page and then closes the connection.
+5. __curl__ requests the web page from __httpd__. After receiving the web page, __curl__ closes the connection.
 6. __httpd__ keeps running and is ready to handle any client connections that it may receive on the listening socket.
 
 ### Note about SElinux
