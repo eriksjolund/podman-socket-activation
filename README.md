@@ -66,7 +66,7 @@ $
 The socket can later be used by for instance __docker-compose__ that needs a Docker-compatible API
 
 ```
-$ export DOCKER_HOST=$XDG_RUNTIME_DIR/podman/podman.sock
+$ export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 $ docker-compose up
 ```
 
