@@ -123,8 +123,11 @@ $ echo hello | socat - VSOCK-CONNECT:1:3000
 hello
 ```
 
-An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections from clients.
-The command-line option __--network=none__ could therefore be used to prevent the container from establishing outgoing connections.
+### Improve security by disabling the network
+
+In case an echo server had a security vulnerability and got compromised it might be used to launch attacks against other PCs or devices on the network.
+An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections on the socket-activated socket it inehrited.
+Luckily, the command-line option __--network=none__, given to `podman run`  in the service unit file, achieves exactly what we need.
 
 ```
 $ grep -A 9 ExecStart= ~/.config/systemd/user/echo@.service
@@ -140,20 +143,35 @@ ExecStart=/usr/bin/podman run \
     ghcr.io/eriksjolund/socket-activate-echo
 ```
 
-Try establishing an outgoing connection
+Assume an intruder has shell access in the container. The situation can be simulated by executing commands with `podman exec`.
 
 ```
-$ podman exec -t echo-demo curl https://podman.io
+$ podman exec -ti echo-demo /bin/bash -c "ip -brief addr"
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+$ podman exec -ti echo /bin/bash -c "curl https://podman.io"
 curl: (6) Could not resolve host: podman.io
 $
 ```
+Only the loopback interface is available and curl is not able to download any web page.
 
-A good security practice is to run programs with as few privileges as possible. In case the program would get hacked, the intruder would only
-gain access to the privileges at hand.
+If we instead would remove the option  __--network=none__, the same commands show that the _tap0_ network interface is also available and that
+curl is able to download a web page:
+```
+$ podman exec -ti echo-demo /bin/bash -c "ip -brief addr"
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+tap0             UNKNOWN        10.0.2.100/24 fd00::9847:3aff:fe5d:97ea/64 fe80::9847:3aff:fe5d:97ea/64
+$
+$ podman exec -ti echo-demo /bin/bash -c "curl https://podman.io" | head -2
+<!doctype html>
+<html lang="en-US">
+```
 
-Note: in case a network server needs to establish outgoing connections, remove the __--network=none__ option.
+### Speed advantage
 
-The communication in the "socket-activation" socket has native network throughput speed. Other network traffic needs to pass through slirp4netns and gets the performance penalty that comes with it.
+Using _socket activation_ comes with another advantage.
+
+The communication in the "socket-activation" socket has native network throughput speed.
+Other network traffic needs to pass through slirp4netns and gets the performance penalty that comes with it.
 
 ### Socket activate an Apache HTTP server with systemd-socket-activate
 
@@ -199,4 +217,3 @@ Quite a lot of things happened during this web page fetch:
 If your computer is running SELinux, you need to have __container-selinux  2.183.0__ or newer installed.
 If container socket activation via Podman does not work and you are using an older version of
 container-selinux, add `--security-opt label=disable` to `podman run` as a work around.
-
