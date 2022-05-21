@@ -88,7 +88,7 @@ $ docker-compose up
 
 ### Socket-activated echo server container in a systemd service
 
-More recently, in version 3.4.0, Podman received support for another type of socket activation, namely, socket action
+More recently, in version 3.4.0, Podman received support for another type of socket activation, namely, socket activation
 of containers. Such socket activation can be used in the systemd services that are generated with
 the command `podman generate systemd --new --name CTR`.
 
