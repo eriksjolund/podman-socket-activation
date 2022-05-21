@@ -186,13 +186,13 @@ $
 
 Quite a lot of things happened during this web page fetch:
 
-1. __curl__ tries to establish a TCP connection to localhost TCP port 8080 by sending a TCP SYN.
-2. __systemd-socket-activate__ starts `podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd` and let it inherit the socket.
+1. __curl__ connects to localhost TCP port 8080 and a TCP connection is established.
+2. __systemd-socket-activate__ starts `podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd`. Podman inherits the socket.
 3. Podman pulls the container image if needed.
-3. Podman starts the Apache HTTP server (__httpd__) in the container and let it inherit the socket.
-4. __httpd__ calls accept() to accept the connection.
-5. __curl__ requests the web page from __httpd__. After receiving the web page, __curl__ closes the connection.
-6. __httpd__ keeps running and is ready to handle any client connections that it may receive on the listening socket.
+4. Podman starts the Apache HTTP server (__httpd__) via fork/exec of conmon and the OCI runtime. The socket is inherited by __httpd__.   
+5. __httpd__ calls `accept()` to accept the connection.
+6. __httpd__ returns the web page to __curl__. The TCP connection is then closed.
+7. __httpd__ keeps running and is ready to handle any client connections that it may receive on the listening socket.
 
 ### Note about SElinux
 
