@@ -184,7 +184,7 @@ $ curl -s localhost:8080 | head -6
 $
 ```
 
-Quite a lot of things happend during this web page fetch:
+Quite a lot of things happened during this web page fetch:
 
 1. __curl__ tries to establish a TCP connection to localhost TCP port 8080 by sending a TCP SYN.
 2. __systemd-socket-activate__ starts `podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd` and let it inherit the socket.
