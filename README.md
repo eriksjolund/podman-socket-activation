@@ -20,26 +20,42 @@ You might be surprised to hear that it's now possible to run a web server contai
 get native network throughput speed! Even more surprising is that the __--network=none__ option can be given to disable the network.
 There is also no need to publish ports.
 
-The new way to run a containerized network server is to use socket activation provided by systemd.
+The new way to run a network server container with Podman is to use socket activation provided by systemd.
+Not all software daemons support socket activation but it's getting more popular.
+For instance Apache HTTP server, MariaDB, DBUS, Pipewire, Gunicorn, CUPS all support socket activation support.
 
 Socket activation conceptually works by having systemd create a socket (e.g. TCP, UDP or Unix socket). As soon as
 a client connects to the socket, systemd will start the systemd service that is configured for the socket.
 The newly started program inherits the open file descriptor of the socket and can accept the incoming connection.
-The new feature is that Podman can now pass such a socket to the container.
+The new feature is that Podman now passes such a socket to the container. Thanks to the fork/exec model
+of Podman, the socket will be first inherited by conmon and then by the OCI runtime and finally by the container
+as can be seen in the following diagram:
 
-Not all software daemons support socket activation but it's getting more popular.
-For instance Apache HTTP server, MariaDB, DBUS, Pipewire, Gunicorn, CUPS all support socket activation support.
+``` mermaid
+stateDiagram-v2
+    [*] --> systemd: client connect()
+    systemd --> podman: socket inherited via fork/exec
+    state "OCI runtime" as s2
+    podman --> conmon: socket inherited via fork/exec
+    conmon --> s2: socket inherited via fork/exec
+    s2 --> container: socket inherited via fork/exec
+```
+
+Before looking into this new feature, let us take a look at another form of socket activation in Podman.
 
 ### Podman's socket-activated API service
 
-On my Fedora laptop, I can find many systemd unit files that are defining sockets for socket activation:
+Podman has supported socket activation of its API service for a long time. Here the architecture is simpler
+because the socket is used by Podman itself:
 
-```
-$  find /usr/lib -name '*.socket' | wc -l
-94
+``` mermaid
+stateDiagram-v2
+    [*] --> systemd: client connect()
+    systemd --> podman: socket inherited via fork/exec
 ```
 
-One of the files is _/usr/lib/systemd/user/podman.socket_
+The file _/usr/lib/systemd/user/podman.socket_ on my Fedora laptop defines the Podman API socket for
+rootless users:
 
 ```
 $ cat /usr/lib/systemd/user/podman.socket
@@ -55,7 +71,7 @@ SocketMode=0660
 WantedBy=sockets.target
 ```
 
-This Unix socket can be started by my regular user on the laptop
+The socket is configured to be a Unix socket and can be started like this
 
 ```
 $ systemctl --user start podman.socket
@@ -72,7 +88,6 @@ $ docker-compose up
 
 ### Socket-activated echo server container in a systemd service
 
-Podman has supported socket activation of its API service for a long time.
 More recently, in version 3.4.0, Podman received support for another type of socket activation, namely, socket action
 of containers. Such socket activation can be used in the systemd services that are generated with
 the command `podman generate systemd --new --name CTR`.
