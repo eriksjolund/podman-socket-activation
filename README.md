@@ -214,7 +214,7 @@ In one shell, launch the container with __systemd-socket-activate__  and __podma
 $ systemd-socket-activate -l 8080 podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd
 ```
 
-The TCP port number 8080 is only given as an option to __systemd-socket-activate__. The  __--publish__ (__-p__)
+The TCP port number 8080 is given as an option to __systemd-socket-activate__. The  __--publish__ (__-p__)
 option for `podman run` is not used. As long as no client has connected, only __systemd-socket-activate__ is running.
 
 In another shell, fetch a web page from _localhost:8080_
