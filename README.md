@@ -142,7 +142,7 @@ hello
 ### Improve security by disabling the network
 
 In case the echo server would get compromised due to a security vulnerability, the container might be used to launch attacks against other PCs or devices on the network.
-An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections on the socket-activated socket it inehrited.
+An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections on the socket-activated socket it inherited.
 Luckily, the command-line option __--network=none__, given to `podman run`  in the service unit file, provides those restrictions.
 
 ```
@@ -195,7 +195,7 @@ $ podman exec -ti echo-demo /bin/bash -c "curl https://podman.io" | head -2
 $
 ```
 
-By using the option  __--network=none__, we thus limit the possibilities for an introduder to use the
+By using the option  __--network=none__, we thus limit the possibilities for an intruder to use the
 compromised container as a starting point for attacks on other PCs.
 
 ### Native network throughput, first connection latency
