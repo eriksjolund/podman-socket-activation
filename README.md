@@ -1,15 +1,16 @@
+
 # Currently a draft
 ## Podman socket activation
 
 Title suggestions:
 
-* "_How socket activation achieves improved security and native network throughput speed for a container_"
+* "_How socket activation achieves improved security and native network throughput for a container_"
 
 * "_How socket activation lets Podman run a network server even with the container network disabled_"
 
-* "_Improve security and get native network throughput speed by using socket activation_"
+* "_Improve security and get native network throughput by using socket activation_"
 
-* "_Improve security and get native network throughput speed by using rootless Podman and socket activation_"
+* "_Improve security and get native network throughput by using rootless Podman and socket activation_"
 
 Running a web server container is one of the more common uses for Podman. Normally you
 would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
@@ -17,7 +18,7 @@ When running rootless Podman you also need to be aware that the network traffic 
 by the user space application __slirp4netns__ which comes with a performance penalty.
 
 You might be surprised to hear that it's now possible to run a web server container with rootless Podman and
-get native network throughput speed! Even more surprising is that the __--network=none__ option can be given to disable the network.
+get native network throughput! Even more surprising is that the __--network=none__ option can be given to disable the network.
 There is also no need to publish ports.
 
 The new way to run a network server container with Podman is to use socket activation provided by systemd.
@@ -54,7 +55,7 @@ stateDiagram-v2
     systemd --> podman: socket inherited via fork/exec
 ```
 
-The file _/usr/lib/systemd/user/podman.socket_ on my Fedora laptop defines the Podman API socket for
+The file _/usr/lib/systemd/user/podman.socket_ on a Fedora system defines the Podman API socket for
 rootless users:
 
 ```
@@ -93,9 +94,9 @@ of containers. Such socket activation can be used in the systemd services that a
 the command `podman generate systemd --new --name CTR`.
 
 I created a container image [__ghcr.io/eriksjolund/socket-activate-echo__](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo)
-of an echo server that supports socket activation. (The echo server currently has a bit limited functionality. It was written for the
+of an echo server that supports socket activation. The echo server currently has limited functionality. It was written for the
 sole purpose of demonstrating socket activation. Source code can found in the GitHub repo [eriksjolund/socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/)
-where also more examples can be found).
+where also more examples can be found.
 
 Let's try it out. Start the echo server sockets
 
@@ -140,9 +141,9 @@ hello
 
 ### Improve security by disabling the network
 
-In case the echo server would get compromised due to a security vulnerability, it might be used to launch attacks against other PCs or devices on the network.
+In case the echo server would get compromised due to a security vulnerability, the container might be used to launch attacks against other PCs or devices on the network.
 An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections on the socket-activated socket it inehrited.
-Luckily, the command-line option __--network=none__, given to `podman run`  in the service unit file, achieves exactly what we need.
+Luckily, the command-line option __--network=none__, given to `podman run`  in the service unit file, provides those restrictions.
 
 ```
 $ grep -A 9 ExecStart= ~/.config/systemd/user/echo@.service
@@ -160,33 +161,52 @@ ExecStart=/usr/bin/podman run \
 
 Assume an intruder has shell access in the container. The situation can be simulated by executing commands with `podman exec`.
 
+Only the loopback interface is available
+
 ```
 $ podman exec -ti echo-demo /bin/bash -c "ip -brief addr"
 lo               UNKNOWN        127.0.0.1/8 ::1/128
+```
+
+__curl__ is not able to download any web page
+
+```
 $ podman exec -ti echo /bin/bash -c "curl https://podman.io"
 curl: (6) Could not resolve host: podman.io
 $
 ```
-Only the loopback interface is available and curl is not able to download any web page.
 
-If we instead would remove the option  __--network=none__, the same commands show that the _tap0_ network interface is also available and that
-curl is able to download a web page:
+If we instead remove the option  __--network=none__ and run the same commands
+we see that the network interface _tap0_ is also available
+
 ```
 $ podman exec -ti echo-demo /bin/bash -c "ip -brief addr"
 lo               UNKNOWN        127.0.0.1/8 ::1/128
 tap0             UNKNOWN        10.0.2.100/24 fd00::9847:3aff:fe5d:97ea/64 fe80::9847:3aff:fe5d:97ea/64
 $
+```
+
+and that __curl__ is able to download the web page.
+
+```
 $ podman exec -ti echo-demo /bin/bash -c "curl https://podman.io" | head -2
 <!doctype html>
 <html lang="en-US">
+$
 ```
 
-### Speed advantage
+By using the option  __--network=none__, we thus limit the possibilities for an introduder to use the
+compromised container as a starting point for attacks on other PCs.
+
+### Native network throughput, first connection latency
 
 Using _socket activation_ comes with another advantage.
 
-The communication in the "socket-activation" socket has native network throughput speed.
-Other network traffic needs to pass through slirp4netns and gets the performance penalty that comes with it.
+The communication in the socket-activated socket has native network throughput. Other network traffic needs
+to pass through slirp4netns and gets the performance penalty that comes with it.
+
+Unfortunately, the very first connection to a socket-activated container will have more latency due to container startup.
+To minimize this latency, consider adding the `podman run` option __--pull=never__ and instead pull the container image beforehand.
 
 ### Socket activate an Apache HTTP server with systemd-socket-activate
 
