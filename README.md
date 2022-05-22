@@ -27,7 +27,7 @@ as can be seen in the following diagram:
 
 ``` mermaid
 stateDiagram-v2
-    [*] --> systemd: client connect()
+    [*] --> systemd: client connects
     systemd --> podman: socket inherited via fork/exec
     state "OCI runtime" as s2
     podman --> conmon: socket inherited via fork/exec
@@ -44,7 +44,7 @@ because the socket is used by Podman itself:
 
 ``` mermaid
 stateDiagram-v2
-    [*] --> systemd: client connect()
+    [*] --> systemd: client connects
     systemd --> podman: socket inherited via fork/exec
 ```
 
