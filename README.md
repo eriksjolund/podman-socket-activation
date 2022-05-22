@@ -16,7 +16,7 @@ There is also no need to publish ports.
 
 The new way to run a network server container with Podman is to use socket activation provided by systemd.
 Not all software daemons support socket activation but it's getting more popular.
-For instance Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS all support socket activation.
+For instance Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS all have socket activation support.
 
 Socket activation conceptually works by having systemd create a socket (e.g. TCP, UDP or Unix socket). As soon as
 a client connects to the socket, systemd will start the systemd service that is configured for the socket.
