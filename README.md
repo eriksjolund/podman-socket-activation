@@ -191,15 +191,16 @@ $
 By using the option  __--network=none__, we thus limit the possibilities for an intruder to use the
 compromised container as a starting point for attacks on other PCs.
 
-### Native network throughput, first connection latency
+### Network throughput and latency
 
-Using _socket activation_ comes with another advantage.
+Using _socket activation_ comes with another advantage. The communication in the socket-activated
+socket has native network throughput. Other network traffic needs to pass through slirp4netns and
+gets the performance penalty that comes with it.
 
-The communication in the socket-activated socket has native network throughput. Other network traffic needs
-to pass through slirp4netns and gets the performance penalty that comes with it.
-
-Unfortunately, the very first connection to a socket-activated container will have more latency due to container startup.
-To minimize this latency, consider adding the `podman run` option __--pull=never__ and instead pull the container image beforehand.
+Unfortunately, using _socket activation_ also comes with a disadvantage. The very first connection
+to a socket-activated container will have more latency due to container startup.
+To minimize this latency, consider adding the __podman run__ option __--pull=never__ and
+instead pull the container image beforehand.
 
 ### Socket activate an Apache HTTP server with systemd-socket-activate
 
