@@ -164,7 +164,7 @@ lo               UNKNOWN        127.0.0.1/8 ::1/128
 __curl__ is not able to download any web page
 
 ```
-$ podman exec -ti echo /bin/bash -c "curl https://podman.io"
+$ podman exec -ti echo-demo /bin/bash -c "curl https://podman.io"
 curl: (6) Could not resolve host: podman.io
 $
 ```
