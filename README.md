@@ -204,19 +204,19 @@ instead pull the container image beforehand.
 
 ### Socket activate an Apache HTTP server with systemd-socket-activate
 
-Instead of setting up a systemd service to test out socket activation, an alternative is to use the command-line tool __systemd-socket-activate__.
+Instead of setting up a systemd service to test out socket activation, an alternative is to use the command-line tool [__systemd-socket-activate__](https://www.freedesktop.org/software/systemd/man/systemd-socket-activate.html#).
 
 As an example let us use the container image [ghcr.io/eriksjolund/socket-activate-httpd](https://github.com/eriksjolund/socket-activate-httpd/pkgs/container/socket-activate-httpd)
 that contains an Apache HTTP server.
 
-In one shell, launch the container with __systemd-socket-activate__  and __podman run__.
+In one shell, start __systemd-socket-activate__.
 
 ```
 $ systemd-socket-activate -l 8080 podman run --rm --network=none ghcr.io/eriksjolund/socket-activate-httpd
 ```
 
 The TCP port number 8080 is given as an option to __systemd-socket-activate__. The  __--publish__ (__-p__)
-option for `podman run` is not used. As long as no client has connected, only __systemd-socket-activate__ is running.
+option for `podman run` is not used.
 
 In another shell, fetch a web page from _localhost:8080_
 
