@@ -30,9 +30,9 @@ stateDiagram-v2
     [*] --> systemd: client connects
     systemd --> podman: socket inherited via fork/exec
     state "OCI runtime" as s2
-    podman --> conmon: socket inherited via fork/exec
+    podman --> conmon: socket inherited via double fork/exec
     conmon --> s2: socket inherited via fork/exec
-    s2 --> container: socket inherited via fork/exec
+    s2 --> container: socket inherited via exec
 ```
 
 Before looking into this new feature, let us take a look at another form of socket activation in Podman.
