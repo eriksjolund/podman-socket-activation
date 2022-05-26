@@ -202,6 +202,60 @@ to a socket-activated container will have more latency due to container startup.
 To minimize this latency, consider adding the __podman run__ option __--pull=never__ and
 instead pull the container image beforehand.
 
+### Restrict Podman with _RestrictAddressFamilies_
+
+It is possible to restrict Podman from accessing AF_INET and AF_INET6 sockets with the __systemd__ directive [__RestrictAddressFamilies__](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RestrictAddressFamilies=). Socket-activated sockets are unaffected by the directive.
+
+If the `--pull=never` option is added to `podman run`, the echo container will continue to work even with the very restricted setting
+
+```
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+```
+
+All types of sockets are then inaccessible except AF_UNIX sockets, AF_NETLINK sockets and the socket-activated sockets.
+
+In case there would be a security vulnerability in Podman, conmon or runc, this configuration limits
+the possibilities an intruder has to launch attacks on other PCs on the network.
+
+The _echo-restrict.service_ is configured with `RestrictAddressFamilies=AF_UNIX AF_NETLINK`.
+The service is activated with _echo-restrict.socket_
+
+```
+$ grep Listen ~/.config/systemd/user/echo-restrict.socket
+ListenStream=127.0.0.1:9000
+```
+
+To try it out, start the socket
+
+```
+$ systemctl --user start echo-restrict.socket
+```
+
+and see that it works
+
+```
+$ echo hello | socat - tcp4:127.0.0.1:9000
+hello
+$
+```
+
+Caveat 1: Currently, __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK`, but the number of socket-activated sockets are limited to max 2 (see bug: https://github.com/opencontainers/runc/issues/3488).
+
+Caveat 2: At the time of this writing, __crun__ does not support `RestrictAddressFamilies=AF_UNIX AF_NETLINK` (see feature request: https://github.com/containers/crun/issues/929).
+
+If we would have used `--pull=always` instead of  `--pull=never`, the service fails as expected because
+Podman is blocked from establishing connections to the container registry.
+
+__journalctl__ would then show such error messages
+
+```
+$ journalctl --user -xe -u echo.service | grep -A2 "Trying to pull" | tail -3
+May 26 10:09:54 asus podman[28272]: Trying to pull ghcr.io/eriksjolund/socket-activate-echo:latest...
+May 26 10:09:54 asus podman[28272]: Error: initializing source docker://ghcr.io/eriksjolund/socket-activate-echo:latest: pinging container registry ghcr.io: Get "https://ghcr.io/v2/": dial tcp 140.82.121.34:443: socket: address family not supported by protocol
+May 26 10:09:54 asus systemd[10686]: test.service: Main process exited, code=exited, status=125/n/a
+$
+```
+
 ### Socket activate an Apache HTTP server with systemd-socket-activate
 
 Instead of setting up a systemd service to test out socket activation, an alternative is to use the command-line tool [__systemd-socket-activate__](https://www.freedesktop.org/software/systemd/man/systemd-socket-activate.html#).
