@@ -17,8 +17,8 @@ Podman supports two forms of socket activation:
 
 ### Socket activation of the API service
 
-Podman has supported socket activation of its API service for a long time. Here the architecture is simpler
-because the socket is used by Podman itself:
+Podman has supported socket activation of its API service for a long time.
+The architecture is simple because the socket is used by Podman itself:
 
 ``` mermaid
 stateDiagram-v2
