@@ -5,10 +5,11 @@ Title: "_Use socket activation with Podman to get improved security and native n
 
 Subtitle: "_Learn how to restrict network access for a containerized network server_"
 
-Socket activation conceptually works by having systemd create a socket (e.g. TCP, UDP or Unix socket). As soon as
-a client connects to the socket, systemd will start the systemd service that is configured for the socket.
-The newly started program inherits the open file descriptor of the socket and accepts the incoming connection.
-This is default way how things work (i.e. when [Accept=no](https://www.freedesktop.org/software/systemd/man/systemd.socket.html#Accept=)).
+Socket activation conceptually works by having systemd create a socket (e.g. TCP, UDP or Unix
+socket). As soon as a client connects to the socket, systemd will start the systemd service that is
+configured for the socket. The newly started program inherits the open file descriptor of the socket
+and accepts the incoming connection. This is default way how things work (i.e. when
+[Accept=no](https://www.freedesktop.org/software/systemd/man/systemd.socket.html#Accept=)).
 
 Podman supports two forms of socket activation:
 
@@ -76,14 +77,18 @@ stateDiagram-v2
     s2 --> container: socket inherited via exec
 ```
 
-This type of socket activation can be used in the systemd services that are generated with the command [`podman generate systemd`](https://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html). The container must also support socket activation. Not all software daemons support socket activation but it's getting more popular.
-For instance Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS all have socket activation support.
+This type of socket activation can be used in the systemd services that are generated with the command
+[`podman generate systemd`](https://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html).
+The container must also support socket activation. Not all software daemons support socket activation
+but it's getting more popular. For instance Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS
+all have socket activation support.
 
 #### Example: socket-activated echo server container in a systemd service
 
 The container image [__ghcr.io/eriksjolund/socket-activate-echo__](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo)
-contains an echo server that supports socket activation. Source code is available in the GitHub repo [eriksjolund/socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/)
-where also more examples can be found.
+contains an echo server that supports socket activation. Source code is available in the GitHub repo
+[eriksjolund/socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/) where also more
+examples can be found.
 
 To try it out, clone the GitHub repository and install the systemd units. Then start the echo server sockets
 
@@ -128,9 +133,12 @@ hello
 
 ### Improve security by disabling the network
 
-In case the echo server would get compromised due to a security vulnerability, the container might be used to launch attacks against other PCs or devices on the network.
-An echo server does not need the ability to establish outgoing connections. It just needs to accept incoming connections on the socket-activated socket it inherited.
-Luckily, the command-line option [__--network=none__](https://docs.podman.io/en/latest/markdown/podman-run.1.html#network-mode-net), given to `podman run` in the service unit file, provides those restrictions.
+In case the echo server would get compromised due to a security vulnerability, the container might be used to
+launch attacks against other PCs or devices on the network. An echo server does not need the ability to
+establish outgoing connections. It just needs to accept incoming connections on the socket-activated socket it
+inherited. Luckily, the command-line option
+[__--network=none__](https://docs.podman.io/en/latest/markdown/podman-run.1.html#network-mode-net), given to
+`podman run` in the service unit file, provides those restrictions.
 
 ```
 $ grep -A 9 ExecStart= ~/.config/systemd/user/echo@.service
@@ -146,7 +154,8 @@ ExecStart=/usr/bin/podman run \
     ghcr.io/eriksjolund/socket-activate-echo
 ```
 
-Assume an intruder has shell access in the container. The situation can be simulated by executing commands with `podman exec`.
+Assume an intruder has shell access in the container. The situation can be simulated by executing
+commands with `podman exec`.
 
 Only the loopback interface is available
 
@@ -198,21 +207,26 @@ instead pull the container image beforehand.
 
 ### Restrict Podman with _RestrictAddressFamilies_
 
-When using Podman in a systemd service, the __systemd__ directive [__RestrictAddressFamilies__](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RestrictAddressFamilies=)
-can be used to restrict Podman's access to sockets. The restriction only concerns the use of the system call __socket()__, which means that socket-activated sockets are unaffected by the directive.
+When using Podman in a systemd service, the __systemd__ directive
+[__RestrictAddressFamilies__](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RestrictAddressFamilies=)
+can be used to restrict Podman's access to sockets. The restriction only concerns the use of the system call __socket()__,
+which means that socket-activated sockets are unaffected by the directive.
 
 Containers that only need internet access via socket-activated sockets can still be run by Podman when
 systemd is configured to restrict Podman's ability to use the system call `socket()` for the AF_INET and AF_INET6
-socket families. Of course, Podman would then be blocked from pulling down any container image so the container image needs to be present beforehand.
+socket families. Of course, Podman would then be blocked from pulling down any container image so the container
+image needs to be present beforehand.
 
 Let's see how we could use __RestrictAddressFamilies__  for the socket-activated echo server.
-If the `--pull=never` option is added to `podman run`, the echo server container will continue to work even with the very restricted setting
+If the `--pull=never` option is added to `podman run`, the echo server container will continue to work even with
+the very restricted setting
 
 ```
 RestrictAddressFamilies=AF_UNIX AF_NETLINK
 ```
 
-All use of the system call `socket()` is then disallowed except for the socket families AF_UNIX sockets and AF_NETLINK sockets.
+All use of the system call `socket()` is then disallowed except for the socket families AF_UNIX sockets and AF_NETLINK
+sockets.
 
 In case there would be a security vulnerability in Podman, conmon or runc, this configuration limits
 the possibilities an intruder has to launch attacks on other PCs on the network.
@@ -247,8 +261,9 @@ the first started Podman systemd user service will notice that the Podman user n
 and will thus try to create it. This normally succeeds, but when RestrictAddressFamilies is used it fails.
 
 The reason is that using RestrictAddressFamilies in an unprivileged systemd user service
- implies [`NoNewPrivileges=yes`](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#NoNewPrivileges=), which prevents __/usr/bin/newuidmap__ and __/usr/bin/newgidmap__
-from running with elevated privileges. Podman executes __newuidmap__ and __newgidmap__  to set up the user namespace.
+ implies [`NoNewPrivileges=yes`](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#NoNewPrivileges=),
+which prevents __/usr/bin/newuidmap__ and __/usr/bin/newgidmap__ from running with elevated privileges.
+Podman executes __newuidmap__ and __newgidmap__  to set up the user namespace.
 
 The executables normally run with elevated privileges, as they need to
 perform operations not available to an unprivileged user. These capabalities are
@@ -261,10 +276,10 @@ $ getcap /usr/bin/newgidmap
 $
 ```
 
-Setting up the user namespace only needs to be done once after each reboot because the user namespace will be reused for all other invocations of Podman.
-
-Services using `RestrictAddressFamilies` or `NoNewPrivileges=yes` can be made to work by configuring them to start after a systemd user service that
-is responsible for setting up the user namespace.
+Setting up the user namespace only needs to be done once because the created user namespace will be
+reused for all other invocations of Podman. Services using `RestrictAddressFamilies` or `NoNewPrivileges=yes` can
+be made to work by configuring them to start after a systemd user service that is responsible for setting
+up the user namespace.
 
 For instance, the unit _echo-restrict.service_ depends on _podman-usernamespace.service_:
 
@@ -274,21 +289,24 @@ After=podman-usernamepsace.service
 BindTo=podman-usernamespace.service
 ```
 
-The service _podman-usernamepsace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. That command is normally used for other
-things, but a side effect of the command is that it sets up the user namespace.
+The service _podman-usernamepsace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. That
+command is normally used for other things, but a side effect of the command is that it sets up the user namespace.
 
-Instead of using  _podman-usernamespace.service_, another solution could have been to create a dependency on a systemd user service that performs a container image pull
+Instead of using _podman-usernamespace.service_, another solution could have been to create a dependency on
+a systemd user service that performs a container image pull
 (i.e `ExecStart=/usr/bin/podman pull ghcr.io/eriksjolund/socket-activate-echo:latest`)
 
 > **Note**
-> Currently __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK`, but the number of socket-activated sockets are limited to max 2 (see bug: https://github.com/opencontainers/runc/issues/3488)
+> Currently __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK`, but the number of socket-activated
+> sockets are limited to max 2 (see bug: https://github.com/opencontainers/runc/issues/3488)
 
 > **Note**
-> At the time of this writing, __crun__ does not support `RestrictAddressFamilies=AF_UNIX AF_NETLINK` (see feature request: https://github.com/containers/crun/issues/929)
+> At the time of this writing, __crun__ does not support `RestrictAddressFamilies=AF_UNIX AF_NETLINK`
+> (see feature request: https://github.com/containers/crun/issues/929)
 
 Verifying that the Podman restriction `RestrictAddressFamilies=AF_UNIX AF_NETLINK` works as expected:
-If we would use `--pull=always` instead of `--pull=never` in _echo-restrict.service_, the service fails as expected because
-Podman is blocked from establishing connections to the container registry.
+If we would use `--pull=always` instead of `--pull=never` in _echo-restrict.service_, the service fails as
+expected because Podman is blocked from establishing connections to the container registry.
 
 __journalctl__ would then show such error messages
 
@@ -302,9 +320,11 @@ $
 
 ### Socket activate an Apache HTTP server with systemd-socket-activate
 
-Instead of setting up a systemd service to test out socket activation, an alternative is to use the command-line tool [__systemd-socket-activate__](https://www.freedesktop.org/software/systemd/man/systemd-socket-activate.html#).
+Instead of setting up a systemd service to test out socket activation, an alternative is to use the command-line
+tool [__systemd-socket-activate__](https://www.freedesktop.org/software/systemd/man/systemd-socket-activate.html#).
 
-As an example let us use the container image [ghcr.io/eriksjolund/socket-activate-httpd](https://github.com/eriksjolund/socket-activate-httpd/pkgs/container/socket-activate-httpd)
+As an example let us use the container image
+[ghcr.io/eriksjolund/socket-activate-httpd](https://github.com/eriksjolund/socket-activate-httpd/pkgs/container/socket-activate-httpd)
 that contains an Apache HTTP server.
 
 In one shell, start __systemd-socket-activate__.
@@ -332,14 +352,14 @@ $
 ### Note about SELinux
 
 > **Note**
-> If your computer is running SELinux, you need to have [__container-selinux 2.186.0__](https://github.com/containers/container-selinux) or newer installed.
-> If container socket activation via Podman does not work and you are using an older version of
+> If your computer is running SELinux, you need to have [__container-selinux 2.186.0__](https://github.com/containers/container-selinux)
+> or newer installed. If container socket activation via Podman does not work and you are using an older version of
 > container-selinux, add `--security-opt label=disable` to `podman run` as a work around.
 
 ### Note about running systemd in container
 
-> **Note** There is currently no way to pass a socket-activated socket into a container when the container is running systemd.
-> In other words, the executable __/usr/lib/systemd/systemd__ does not support socket activation.
+> **Note** There is currently no way to pass a socket-activated socket into a container when the container is running
+> systemd. In other words, the executable __/usr/lib/systemd/systemd__ does not support socket activation.
 > (There is a feature request related to it https://github.com/systemd/systemd/issues/17764)
 
 ### Note about Windows and macOS
