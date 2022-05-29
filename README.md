@@ -10,14 +10,14 @@ a client connects to the socket, systemd will start the systemd service that is 
 The newly started program inherits the open file descriptor of the socket and accepts the incoming connection.
 This is default way how things work (i.e. when [Accept=no](https://www.freedesktop.org/software/systemd/man/systemd.socket.html#Accept=)).
 
-Podman supports socket activation in two ways.
+Podman supports two forms of socket activation:
 
-* The socket-activated API service
+* Socket activation of the API service
 * Socket activation of containers
 
 Before looking into this new feature, let us take a look at another form of socket activation in Podman.
 
-### Podman's socket-activated API service
+### Socket activation of the API service
 
 Podman has supported socket activation of its API service for a long time. Here the architecture is simpler
 because the socket is used by Podman itself:
@@ -60,7 +60,7 @@ $ export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 $ docker-compose up
 ```
 
-### Podman socket activation of containers
+### Socket activation of containers
 
 Since version 3.4.0 Podman supports socket activation of containers, i.e.,  passing
 a socket-activated socket to the container. Thanks to the fork/exec model of Podman, the socket will be first
