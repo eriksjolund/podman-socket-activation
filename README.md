@@ -274,7 +274,7 @@ After=podman-usernamepsace.service
 BindTo=podman-usernamespace.service
 ```
 
-The service _podman-usernamepsace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. The command is normally used for other
+The service _podman-usernamepsace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. That command is normally used for other
 things, but a side effect of the command is that it sets up the user namespace.
 
 Instead of using  _podman-usernamespace.service_, another solution could have been to create a dependency on a systemd user service that performs a container image pull
