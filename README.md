@@ -368,7 +368,7 @@ $
 > you will not be able to use socket activation for sockets on your host because the Podman on the host is using
 > a Podman API service from a Linux VM.
 
-### Left over blog text
+### Left over blog text (to be deleted)
 
 Running a web server container is one of the more common uses for Podman. Normally you
 would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
