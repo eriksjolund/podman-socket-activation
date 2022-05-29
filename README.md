@@ -96,7 +96,7 @@ Let's try it out. Start the echo server sockets
 ```
 git clone https://github.com/eriksjolund/socket-activate-echo.git
 mkdir -p ~/.config/systemd/user
-cp -r socket-activate-echo/systemd/echo* ~/.config/systemd/user
+cp -r socket-activate-echo/systemd/* ~/.config/systemd/user
 systemctl --user daemon-reload
 systemctl --user start echo@demo.socket
 ```
@@ -204,21 +204,28 @@ instead pull the container image beforehand.
 
 ### Restrict Podman with _RestrictAddressFamilies_
 
-It is possible to restrict Podman from accessing AF_INET and AF_INET6 sockets with the __systemd__ directive [__RestrictAddressFamilies__](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RestrictAddressFamilies=). Socket-activated sockets are unaffected by the directive.
+When using Podman in a systemd service, the __systemd__ directive [__RestrictAddressFamilies__](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RestrictAddressFamilies=)
+can be used to restrict Podman's access to sockets. The restriction only concerns the use of the system call __socket()__, which means that socket-activated sockets are unaffected by the directive.
 
-If the `--pull=never` option is added to `podman run`, the echo container will continue to work even with the very restricted setting
+Containers that only need internet access via socket-activated sockets can still be run by Podman when
+systemd is configured to restrict Podman's ability to use the system call `socket()` for the AF_INET and AF_INET6 socket families.
+
+Of course, Podman would then be blocked from pulling down any container image so the container image needs to be present beforehand.
+
+Let's see how we could use __RestrictAddressFamilies__  for the socket-activated echo server.
+If the `--pull=never` option is added to `podman run`, the echo server container will continue to work even with the very restricted setting
 
 ```
 RestrictAddressFamilies=AF_UNIX AF_NETLINK
 ```
 
-All types of sockets are then inaccessible except AF_UNIX sockets, AF_NETLINK sockets and the socket-activated sockets.
+All use of the system call `socket()` is then disallowed except for the socket families AF_UNIX sockets and AF_NETLINK sockets.
 
 In case there would be a security vulnerability in Podman, conmon or runc, this configuration limits
 the possibilities an intruder has to launch attacks on other PCs on the network.
 
-The _echo-restrict.service_ is configured with `RestrictAddressFamilies=AF_UNIX AF_NETLINK`.
-The service is activated with _echo-restrict.socket_
+The example _echo-restrict.service_ is configured to use `RestrictAddressFamilies=AF_UNIX AF_NETLINK`.
+The service is activated by _echo-restrict.socket_.
 
 ```
 $ grep Listen ~/.config/systemd/user/echo-restrict.socket
@@ -231,7 +238,7 @@ To try it out, start the socket
 $ systemctl --user start echo-restrict.socket
 ```
 
-and see that it works
+and test the echo server with __socat__.
 
 ```
 $ echo hello | socat - tcp4:127.0.0.1:9000
@@ -239,11 +246,56 @@ hello
 $
 ```
 
-Caveat 1: Currently, __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK`, but the number of socket-activated sockets are limited to max 2 (see bug: https://github.com/opencontainers/runc/issues/3488).
+### The need for a separate service for creating the user namespace
 
-Caveat 2: At the time of this writing, __crun__ does not support `RestrictAddressFamilies=AF_UNIX AF_NETLINK` (see feature request: https://github.com/containers/crun/issues/929).
+Let us consider the situaition when systemd starts the systemd user services for
+a user directly after a reboot.  If lingering is enabled for a user and the user is not logged,
+the first started Podman systemd user service will notice that the Podman user namespace is missing
+and will thus try to create it. This creation that normally succeeds, fails when RestrictAddressFamilies is used.
 
-If we would have used `--pull=always` instead of  `--pull=never`, the service fails as expected because
+The reason is that using RestrictAddressFamilies in an unprivileged systemd user service
+ implies [`NoNewPrivileges=yes`](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#NoNewPrivileges=), which prevents __/usr/bin/newuidmap__ and __/usr/bin/newgidmap__
+from running with elevated privileges. Podman executes __newuidmap__ and __newgidmap__  to set up the user namespace.
+
+The executables normally run with elevated privileges, as they need to
+perform operations not available to an unprivileged user. These capabalities are
+
+```
+$ getcap /usr/bin/newuidmap
+/usr/bin/newuidmap cap_setuid=ep
+$ getcap /usr/bin/newgidmap
+/usr/bin/newgidmap cap_setgid=ep
+$
+```
+
+Setting up the user namespace only needs to be done once after each reboot because the user namespace will be reused for all other invocations of Podman.
+
+This means that a service with RestrictAddressFamilies or   NoNewPrivileges=yes must not be the first started
+Podman systemd user service for a user.
+
+Any service using  `RestrictAddressFamilie` or `NoNewPrivileges=yes` must therefore depend on some other service that is responsible for setting up the user namespace.
+The unit _echo-restrict.service_ depends on _podman-usernamespace.service_:
+
+```
+$ grep podman-usernamepsace.servic echo-restrict.service
+After=podman-usernamepsace.service
+BindTo=podman-usernamespace.service
+```
+
+The service _podman-usernamepsace.service_ is a Type=oneshot service that executes `podman unshare /bin/true`. The command is normally used for other
+things, but a side effect of the command is that it sets up the user namespace.
+
+Instead of using  _podman-usernamespace.service_, another solution could have been to create a dependency on a systemd user service that performs a container image pull
+(i.e `ExecStart=/usr/bin/podman pull ghcr.io/eriksjolund/socket-activate-echo:latest`)
+
+> **Note**
+> Currently __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK`, but the number of socket-activated sockets are limited to max 2 (see bug: https://github.com/opencontainers/runc/issues/3488)
+
+> **Note**
+> At the time of this writing, __crun__ does not support `RestrictAddressFamilies=AF_UNIX AF_NETLINK` (see feature request: https://github.com/containers/crun/issues/929)
+
+Verifying that the Podman restriction `RestrictAddressFamilies=AF_UNIX AF_NETLINK` works as expected:
+If we would use `--pull=always` instead of `--pull=never` in _echo-restrict.service_, the service fails as expected because
 Podman is blocked from establishing connections to the container registry.
 
 __journalctl__ would then show such error messages
@@ -285,8 +337,21 @@ $ curl -s localhost:8080 | head -6
 $
 ```
 
-### Note about SElinux
+### Note about SELinux
 
-If your computer is running SELinux, you need to have __container-selinux  2.183.0__ or newer installed.
-If container socket activation via Podman does not work and you are using an older version of
-container-selinux, add `--security-opt label=disable` to `podman run` as a work around.
+> **Note**
+> If your computer is running SELinux, you need to have __container-selinux 2.186.0__ or newer installed.
+> If container socket activation via Podman does not work and you are using an older version of
+> container-selinux, add `--security-opt label=disable` to `podman run` as a work around.
+
+### Note about running systemd in container
+
+> **Note** There is currently no way to pass a socket-activated socket into a container when the container is running systemd.
+> In other words, the executable __/usr/lib/systemd/systemd__ does not support socket activation.
+> (There is a feature request related to it https://github.com/systemd/systemd/issues/17764)
+
+### Note about Windows and macOS
+
+> **Note** Socket activation via the Podman API service is not supported. If you are using Podman on Windows or macOS
+> you will not be able to use socket activation for sockets on your host because the Podman on the host is using
+> a Podman API service from a Linux VM.
