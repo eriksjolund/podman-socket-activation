@@ -163,7 +163,7 @@ curl: (6) Could not resolve host: podman.io
 $
 ```
 
-If we instead remove the option  __--network=none__ and run the same commands
+If we instead remove the option  __--network=none__ and run the same commands,
 we see that the network interface _tap0_ is also available
 
 ```
@@ -263,11 +263,10 @@ $
 
 Setting up the user namespace only needs to be done once after each reboot because the user namespace will be reused for all other invocations of Podman.
 
-This means that a service with RestrictAddressFamilies or   NoNewPrivileges=yes must not be the first started
-Podman systemd user service for a user.
+Services using `RestrictAddressFamilies` or `NoNewPrivileges=yes` can be made to work by configuring them to start after a systemd user service that
+is responsible for setting up the user namespace.
 
-Any service using  `RestrictAddressFamilie` or `NoNewPrivileges=yes` must therefore depend on some other service that is responsible for setting up the user namespace.
-The unit _echo-restrict.service_ depends on _podman-usernamespace.service_:
+For instance, the unit _echo-restrict.service_ depends on _podman-usernamespace.service_:
 
 ```
 $ grep podman-usernamepsace.servic echo-restrict.service
@@ -275,7 +274,7 @@ After=podman-usernamepsace.service
 BindTo=podman-usernamespace.service
 ```
 
-The service _podman-usernamepsace.service_ is a Type=oneshot service that executes `podman unshare /bin/true`. The command is normally used for other
+The service _podman-usernamepsace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. The command is normally used for other
 things, but a side effect of the command is that it sets up the user namespace.
 
 Instead of using  _podman-usernamespace.service_, another solution could have been to create a dependency on a systemd user service that performs a container image pull
