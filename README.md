@@ -15,8 +15,6 @@ Podman supports two forms of socket activation:
 * Socket activation of the API service
 * Socket activation of containers
 
-Before looking into this new feature, let us take a look at another form of socket activation in Podman.
-
 ### Socket activation of the API service
 
 Podman has supported socket activation of its API service for a long time. Here the architecture is simpler
@@ -246,7 +244,7 @@ $
 Let us consider the situaition when systemd starts the systemd user services for
 a user directly after a reboot.  If lingering is enabled for a user and the user is not logged,
 the first started Podman systemd user service will notice that the Podman user namespace is missing
-and will thus try to create it. This creation that normally succeeds, fails when RestrictAddressFamilies is used.
+and will thus try to create it. This normally succeeds, but when RestrictAddressFamilies is used it fails.
 
 The reason is that using RestrictAddressFamilies in an unprivileged systemd user service
  implies [`NoNewPrivileges=yes`](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#NoNewPrivileges=), which prevents __/usr/bin/newuidmap__ and __/usr/bin/newgidmap__
