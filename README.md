@@ -340,7 +340,7 @@ $
 ### Note about SELinux
 
 > **Note**
-> If your computer is running SELinux, you need to have __container-selinux 2.186.0__ or newer installed.
+> If your computer is running SELinux, you need to have [__container-selinux 2.186.0__](https://github.com/containers/container-selinux) or newer installed.
 > If container socket activation via Podman does not work and you are using an older version of
 > container-selinux, add `--security-opt label=disable` to `podman run` as a work around.
 
