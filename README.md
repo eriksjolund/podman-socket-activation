@@ -5,35 +5,15 @@ Title: "_Use socket activation with Podman to get improved security and native n
 
 Subtitle: "_Learn how to restrict network access for a containerized network server_"
 
-Running a web server container is one of the more common uses for Podman. Normally you
-would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
-When running rootless Podman you also need to be aware that the network traffic is processed
-by the user space application __slirp4netns__ which comes with a performance penalty.
-
-You might be surprised to hear that it's now possible to run a web server container with rootless Podman and
-get native network throughput! Even more surprising is that the __--network=none__ option can be given to disable the network.
-There is also no need to publish ports.
-
-The new way to run a network server container with Podman is to use socket activation provided by systemd.
-Not all software daemons support socket activation but it's getting more popular.
-For instance Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS all have socket activation support.
-
 Socket activation conceptually works by having systemd create a socket (e.g. TCP, UDP or Unix socket). As soon as
 a client connects to the socket, systemd will start the systemd service that is configured for the socket.
-The newly started program inherits the open file descriptor of the socket and can accept the incoming connection.
-The new feature is that Podman now passes such a socket to the container. Thanks to the fork/exec model
-of Podman, the socket will be first inherited by conmon and then by the OCI runtime and finally by the container
-as can be seen in the following diagram:
+The newly started program inherits the open file descriptor of the socket and accepts the incoming connection.
+This is default way how things work (i.e. when [Accept=no](https://www.freedesktop.org/software/systemd/man/systemd.socket.html#Accept=)).
 
-``` mermaid
-stateDiagram-v2
-    [*] --> systemd: client connects
-    systemd --> podman: socket inherited via fork/exec
-    state "OCI runtime" as s2
-    podman --> conmon: socket inherited via double fork/exec
-    conmon --> s2: socket inherited via fork/exec
-    s2 --> container: socket inherited via exec
-```
+Podman supports socket activation in two ways.
+
+* The socket-activated API service
+* Socket activation of containers
 
 Before looking into this new feature, let us take a look at another form of socket activation in Podman.
 
@@ -80,18 +60,33 @@ $ export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 $ docker-compose up
 ```
 
-### Socket-activated echo server container in a systemd service
+### Podman socket activation of containers
 
-More recently, in version 3.4.0, Podman received support for another type of socket activation, namely, socket activation
-of containers. Such socket activation can be used in the systemd services that are generated with
-the command `podman generate systemd --new --name CTR`.
+Since version 3.4.0 Podman supports socket activation of containers, i.e.,  passing
+a socket-activated socket to the container. Thanks to the fork/exec model of Podman, the socket will be first
+inherited by conmon and then by the OCI runtime and finally by the container
+as can be seen in the following diagram:
 
-I created a container image [__ghcr.io/eriksjolund/socket-activate-echo__](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo)
-of an echo server that supports socket activation. The echo server currently has limited functionality. It was written for the
-sole purpose of demonstrating socket activation. Source code is available in the GitHub repo [eriksjolund/socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/)
+
+``` mermaid
+stateDiagram-v2
+    [*] --> systemd: client connects
+    systemd --> podman: socket inherited via fork/exec
+    state "OCI runtime" as s2
+    podman --> conmon: socket inherited via double fork/exec
+    conmon --> s2: socket inherited via fork/exec
+    s2 --> container: socket inherited via exec
+```
+
+This type of socket activation can be used in the systemd services that are generated with the command [`podman generate systemd`](https://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html).
+
+#### Example: socket-activated echo server container in a systemd service
+
+The container image [__ghcr.io/eriksjolund/socket-activate-echo__](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo)
+contains an echo server that supports socket activation. Source code is available in the GitHub repo [eriksjolund/socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/)
 where also more examples can be found.
 
-Let's try it out. Start the echo server sockets
+To try it out, clone the GitHub repository and install the systemd units. Then start the echo server sockets
 
 ```
 git clone https://github.com/eriksjolund/socket-activate-echo.git
@@ -355,3 +350,18 @@ $
 > **Note** Socket activation via the Podman API service is not supported. If you are using Podman on Windows or macOS
 > you will not be able to use socket activation for sockets on your host because the Podman on the host is using
 > a Podman API service from a Linux VM.
+
+### Left over blog text
+
+Running a web server container is one of the more common uses for Podman. Normally you
+would need to publish the ports that need to be open by providing the option `--publish` (`-p`) to `podman run`.
+When running rootless Podman you also need to be aware that the network traffic is processed
+by the user space application __slirp4netns__ which comes with a performance penalty.
+
+You might be surprised to hear that it's now possible to run a web server container with rootless Podman and
+get native network throughput! Even more surprising is that the __--network=none__ option can be given to disable the network.
+There is also no need to publish ports.
+
+The new way to run a network server container with Podman is to use socket activation provided by systemd.
+Not all software daemons support socket activation but it's getting more popular.
+For instance Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS all have socket activation support.
