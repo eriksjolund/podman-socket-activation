@@ -197,8 +197,8 @@ compromised container as a starting point for attacks on other PCs.
 ### Network throughput and latency
 
 Using _socket activation_ comes with another advantage. The communication in the socket-activated
-socket has native network throughput. Other network traffic needs to pass through slirp4netns and
-gets the performance penalty that comes with it.
+socket has native network throughput. When running rootless Podman, other network traffic needs to pass
+through slirp4netns and gets the performance penalty that comes with it.
 
 Unfortunately, using _socket activation_ also comes with a disadvantage. The very first connection
 to a socket-activated container will have more latency due to container startup.
