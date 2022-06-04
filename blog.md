@@ -36,7 +36,7 @@ $ mkdir -p ~/.config/systemd/user
 $ podman generate systemd --name --new echo > ~/.config/systemd/user/echo.service
 ```
 
-A socket activated service also requires a systemd socket unit.
+A socket-activated service also requires a systemd socket unit.
 Create the file _~/.config/systemd/user/echo.socket_ where we define the
 sockets that the container should use
 
