@@ -149,6 +149,5 @@ compromised container as a starting point for attacks on other PCs.
 > **Note**
 > If your computer is running SELinux, you need to have
 > [__container-selinux 2.183.0__](https://github.com/containers/container-selinux)
-> or newer installed when running the examples above. If container socket
-> activation via Podman does not work and you are using an older version of
+> or newer installed to run the examples as specified above. If you are using an older version of
 > container-selinux, add `--security-opt label=disable` to `podman run` as a work around.
