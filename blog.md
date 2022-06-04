@@ -84,7 +84,7 @@ $ echo hello | socat - unix:$HOME/echo_stream_sock
 hello
 ```
 
-The echo server works as expected. It replies _"hello"_ when receiving the text _"hello"_.
+The echo server works as expected. It replies _"hello"_ after receiving the text _"hello"_.
 
 In case the echo server would get compromised due to a security vulnerability, the container might be used to
 launch attacks against other PCs or devices on the network. An echo server does not need the ability to

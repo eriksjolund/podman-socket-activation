@@ -152,7 +152,7 @@ $ echo hello | socat - VSOCK-CONNECT:1:3000
 hello
 ```
 
-The echo server works as expected. It replies _"hello"_ when receiving the text _"hello"_.
+The echo server works as expected. It replies _"hello"_ after receiving the text _"hello"_.
 
 ### Socket activate an Apache HTTP server with systemd-socket-activate
 
