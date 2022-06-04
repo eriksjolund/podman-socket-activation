@@ -11,7 +11,7 @@ Network services that are facing the public internet are exposed to the risk of 
 For instance, using strong passwords and keeping the system up to date with latest security updates, will reduce the risk of an intrusion.
 
 Another advice is trying to minimize the damages caused by a compromised network daemon. SELinux provides such protection.
-An SELinux restricted system has rules set up that confines network daemons, so that the they are only allowed to do only what they normally do.
+An SELinux restricted system has rules set up that confines network daemons, so that they are only allowed to do only what they normally do.
 Often this confinement has reduced the impact of security vulnerabilities in network daemons. An intruder might gain unauthorized access but the intruder would still be restricted by the same SELinux rules as the network daemon.
 
 There is a new feature in Podman that also can reduce the impact of security vulnerabilities in network daemons.
