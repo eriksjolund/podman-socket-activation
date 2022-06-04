@@ -20,6 +20,8 @@ Interestingly, it's possible for a container to use such a socket-activated sock
 
 Not all software daemons support socket activation but it's getting more popular, e.g., Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS all have socket activation support.
 
+### An echo server example
+
 Let's try out [socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo), a simple echo server container that supports socket activation.
 For this we need to use a Linux system because socket activation is provided by systemd.
 
@@ -85,6 +87,8 @@ hello
 ```
 
 The echo server works as expected. It replies _"hello"_ after receiving the text _"hello"_.
+
+### Improved security by using --network=none
 
 In case the echo server would get compromised due to a security vulnerability, the container might be used to
 launch attacks against other PCs or devices on the network. An echo server does not need the ability to
