@@ -10,7 +10,7 @@ Subtitle: "_Learn how to restrict network access for a containerized network ser
 Network services that are facing the public internet are exposed to the risk of being attacked. There are different ways of how we could better protect them.
 For instance, using strong passwords and keeping the system up to date with latest security updates, will reduce the risk of an intrusion.
 
-Another advice is to minimize the damage of an intrusion for the event that it would happen. SELinux provides such protection.
+Another advice is trying to minimize the damages caused by a compromised network daemon. SELinux provides such protection.
 An SELinux restricted system has rules set up that confines network daemons, so that the they are only allowed to do only what they normally do.
 Often this confinement has reduced the impact of security vulnerabilities in network daemons. An intruder might gain unauthorized access but the intruder would still be restricted by the same SELinux rules as the network daemon.
 
