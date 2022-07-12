@@ -90,12 +90,12 @@ a systemd user service that performs a container image pull
 (i.e `ExecStart=/usr/bin/podman pull ghcr.io/eriksjolund/socket-activate-echo:latest`)
 
 > **Note**
-> Currently __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK`, but the number of socket-activated
-> sockets are limited to max 2 (see bug: https://github.com/opencontainers/runc/issues/3488)
+> __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK` but before version 1.1.3,
+> runc had a bug that limited the number of socket-activated sockets to max 2.
 
 > **Note**
-> At the time of this writing, __crun__ does not support `RestrictAddressFamilies=AF_UNIX AF_NETLINK`
-> (see feature request: https://github.com/containers/crun/issues/929)
+> At the time of this writing, __crun__ only has support for `RestrictAddressFamilies=AF_UNIX AF_NETLINK`
+> in the main Git branch. The latest crun release 1.4.5 does not have the functionality.
 
 Verifying that the Podman restriction `RestrictAddressFamilies=AF_UNIX AF_NETLINK` works as expected:
 If we would use `--pull=always` instead of `--pull=never` in _echo-restrict.service_, the service fails as
