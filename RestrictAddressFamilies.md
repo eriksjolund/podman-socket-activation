@@ -11,6 +11,8 @@ systemd is configured to restrict Podman's ability to use the system call `socke
 socket families. Of course, Podman would then be blocked from pulling down any container images so the container
 image needs to be present beforehand.
 
+### Example: restrict a socket-activated echo server
+
 Let's see how we could use __RestrictAddressFamilies__  for a socket-activated echo server.
 If the `--pull=never` option is added to `podman run`, the echo server container will continue to work even with
 the very restricted setting
@@ -28,7 +30,7 @@ the possibilities an intruder has to launch attacks on other PCs on the network.
 Let's try out [socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo),
 a simple echo server container that supports socket activation.
 
-### Create the Systemd unit files
+#### Create the Systemd unit files
 
 Create the container
 
@@ -99,6 +101,8 @@ RemainAfterExit=yes
 [Install]
 WantedBy=default.target
 ```
+
+#### Test the echo server
 
 After editing the unit files, systemd needs to reload it's configuration
 
