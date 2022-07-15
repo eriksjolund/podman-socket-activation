@@ -126,9 +126,10 @@ $
 
 The echo server works as expected! It replies _"hello"_ after receiving the text _"hello"_.
 
-Currently Podman does not pull any container when the container is started.
+Podman is blocked from establishing new connections to the internet but everything
+works fine because Podman is configured to not pull the container image.
 
-Modify the service unit so that Podman always pulls the container image
+Now modify the service unit so that Podman always pulls the container image
 
 ```
 $ grep -- --pull= .config/systemd/user/echo.service
