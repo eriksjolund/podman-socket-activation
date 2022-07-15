@@ -148,6 +148,8 @@ $ podman exec -ti echo /bin/bash -c "curl https://podman.io" | head -2
 By using the option __--network=none__, we thus limit the possibilities for an intruder to use the
 compromised container as a starting point for attacks on other PCs.
 
+See also [Podman socket activation tutorial](https://github.com/containers/podman/blob/main/docs/tutorials/socket_activation.md).
+
 ### Note about SELinux
 
 > **Note**
