@@ -123,7 +123,7 @@ $
 ### The need for a separate service for creating the user namespace
 
 Let us consider the situaition when systemd starts the systemd user services for
-a user directly after a reboot.  If lingering is enabled for a user and the user is not logged in,
+a user directly after a reboot.  If lingering is enabled for the user and the user is not logged in,
 the first started Podman systemd user service will notice that the Podman user namespace is missing
 and will thus try to create it. This normally succeeds, but when RestrictAddressFamilies is used
 together with rootless Podman it fails.
