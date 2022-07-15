@@ -13,7 +13,9 @@ image needs to be present beforehand.
 
 ### Example: restrict a socket-activated echo server
 
-Let's see how we could use __RestrictAddressFamilies__  for a socket-activated echo server.
+Let's see how we could use __RestrictAddressFamilies__ for [socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo),
+a simple echo server container that supports socket activation. See also the [Podman socket activation tutorial](socket_activation.md) for an introduction.
+
 If the `--pull=never` option is added to `podman run`, the echo server container will continue to work even with
 the very restricted setting
 
