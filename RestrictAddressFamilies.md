@@ -120,6 +120,50 @@ hello
 $
 ```
 
+The echo server works as expected! It replies _"hello"_ after receiving the text _"hello"_.
+
+Currently Podman does not pull any container when the container is started.
+
+Modify the service unit so that Podman always pulls the container image
+
+```
+$ grep -- --pull= .config/systemd/user/echo.service
+	--pull=never ghcr.io/eriksjolund/socket-activate-echo
+$ sed -i s/pull=never/pull=always/ .config/systemd/user/echo.service
+$ grep -- --pull= .config/systemd/user/echo.service
+	--pull=always ghcr.io/eriksjolund/socket-activate-echo
+```
+
+After editing the unit file, systemd needs to reload it's configuration
+
+```
+$ systemctl --user daemon-reload
+```
+
+Stop the service
+
+```
+$ systemctl --user stop restricted-echo.service
+```
+
+Test the echo server with the program __socat__
+
+```
+$ echo hello | socat - tcp4:127.0.0.1:9000
+```
+
+As expected the service fails because Podman is blocked from establishing connections to the container registry.
+
+__journalctl__ shows such this error  message
+
+```
+$ journalctl --user -xe -u echo.service | grep -A2 "Trying to pull" | tail -3
+May 26 10:09:54 asus podman[28272]: Trying to pull ghcr.io/eriksjolund/socket-activate-echo:latest...
+May 26 10:09:54 asus podman[28272]: Error: initializing source docker://ghcr.io/eriksjolund/socket-activate-echo:latest: pinging container registry ghcr.io: Get "https://ghcr.io/v2/": dial tcp 140.82.121.34:443: socket: address family not supported by protocol
+May 26 10:09:54 asus systemd[10686]: test.service: Main process exited, code=exited, status=125/n/a
+$
+```
+
 ### The need for a separate service for creating the user namespace
 
 Let us consider the situaition when systemd starts the systemd user services for
@@ -170,17 +214,3 @@ a systemd user service that performs a container image pull
 > **Note**
 > At the time of this writing, __crun__ only has support for `RestrictAddressFamilies=AF_UNIX AF_NETLINK`
 > in the main Git branch. The latest crun release 1.4.5 does not have the functionality.
-
-Verifying that the Podman restriction `RestrictAddressFamilies=AF_UNIX AF_NETLINK` works as expected:
-If we would use `--pull=always` instead of `--pull=never` in _echo-restrict.service_, the service fails as
-expected because Podman is blocked from establishing connections to the container registry.
-
-__journalctl__ would then show such error messages
-
-```
-$ journalctl --user -xe -u echo.service | grep -A2 "Trying to pull" | tail -3
-May 26 10:09:54 asus podman[28272]: Trying to pull ghcr.io/eriksjolund/socket-activate-echo:latest...
-May 26 10:09:54 asus podman[28272]: Error: initializing source docker://ghcr.io/eriksjolund/socket-activate-echo:latest: pinging container registry ghcr.io: Get "https://ghcr.io/v2/": dial tcp 140.82.121.34:443: socket: address family not supported by protocol
-May 26 10:09:54 asus systemd[10686]: test.service: Main process exited, code=exited, status=125/n/a
-$
-```
