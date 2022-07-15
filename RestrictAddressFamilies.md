@@ -11,7 +11,7 @@ systemd is configured to restrict Podman's ability to use the system call `socke
 socket families. Of course, Podman would then be blocked from pulling down any container images so the container
 image needs to be present beforehand.
 
-Let's see how we could use __RestrictAddressFamilies__  for the socket-activated echo server.
+Let's see how we could use __RestrictAddressFamilies__  for a socket-activated echo server.
 If the `--pull=never` option is added to `podman run`, the echo server container will continue to work even with
 the very restricted setting
 
@@ -25,21 +25,94 @@ sockets.
 In case there would be a security vulnerability in Podman, conmon or runc, this configuration limits
 the possibilities an intruder has to launch attacks on other PCs on the network.
 
-The example _echo-restrict.service_ is configured to use `RestrictAddressFamilies=AF_UNIX AF_NETLINK`.
-The service is activated by _echo-restrict.socket_.
+Let's try out [socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo),
+a simple echo server container that supports socket activation.
+
+### Create the Systemd unit files
+
+Create the container
 
 ```
-$ grep Listen ~/.config/systemd/user/echo-restrict.socket
+$ podman pull -q ghcr.io/eriksjolund/socket-activate-echo
+$ podman create --rm --name echo --network none --pull=never ghcr.io/eriksjolund/socket-activate-echo
+```
+
+Generate the systemd service unit
+
+```
+$ mkdir -p ~/.config/systemd/user
+$ podman generate systemd --name --new echo > ~/.config/systemd/user/restricted-echo.service
+```
+
+Add the two lines
+```
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+NoNewPrivileges=yes
+```
+under the line `[Service]` with the program __sed__ (or just use an editor)
+
+```
+$ sed -i '/\[Service\]/a \
+RestrictAddressFamilies=AF_UNIX AF_NETLINK\
+NoNewPrivileges=yes' ~/.config/systemd/user/echo.service
+```
+
+Create the file _~/.config/systemd/user/restricted-echo.socket_ with
+this file contents
+
+```
+[Unit]
+Description=restricted echo server
+[Socket]
 ListenStream=127.0.0.1:9000
+
+[Install]
+WantedBy=default.target
 ```
 
-To try it out, start the socket
+Add the two lines
+```
+After=podman-usernamepsace.service
+BindTo=podman-usernamespace.service
+```
+under the line `[Unit]` with the program __sed__ (or just use an editor)
 
 ```
-$ systemctl --user start echo-restrict.socket
+$ sed -i '/\[Unit\]/a \
+After=podman-usernamepsace.service
+BindTo=podman-usernamespace.service' ~/.config/systemd/user/restricted-echo.service
 ```
 
-and test the echo server with __socat__.
+Create the file _~/.config/systemd/user/podman-usernamespace.service_ with this file contents
+
+```
+[Unit]
+Description=podman-usernamespace.service
+
+[Service]
+Type=oneshot
+Restart=on-failure
+TimeoutStopSec=70
+ExecStart=/usr/bin/podman unshare /bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target
+```
+
+After editing the unit files, systemd needs to reload it's configuration
+
+```
+$ systemctl --user daemon-reload
+```
+
+Start the socket unit
+
+```
+$ systemctl --user start restricted-echo.socket
+```
+
+Test the echo server with the program __socat__
 
 ```
 $ echo hello | socat - tcp4:127.0.0.1:9000
@@ -52,7 +125,8 @@ $
 Let us consider the situaition when systemd starts the systemd user services for
 a user directly after a reboot.  If lingering is enabled for a user and the user is not logged in,
 the first started Podman systemd user service will notice that the Podman user namespace is missing
-and will thus try to create it. This normally succeeds, but when RestrictAddressFamilies is used it fails.
+and will thus try to create it. This normally succeeds, but when RestrictAddressFamilies is used
+together with rootless Podman it fails.
 
 The reason is that using RestrictAddressFamilies in an unprivileged systemd user service
  implies [`NoNewPrivileges=yes`](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#NoNewPrivileges=),
@@ -77,7 +151,7 @@ up the user namespace.
 For instance, the unit _echo-restrict.service_ depends on _podman-usernamespace.service_:
 
 ```
-$ grep podman-usernamespace.service echo-restrict.service
+$ grep podman-usernamespace.service ~/.config/systemd/user/echo-restrict.service
 After=podman-usernamepsace.service
 BindTo=podman-usernamespace.service
 ```
