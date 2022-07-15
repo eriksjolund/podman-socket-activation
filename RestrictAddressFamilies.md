@@ -203,10 +203,6 @@ BindTo=podman-usernamespace.service
 The service _podman-usernamespace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. That
 command is normally used for other things, but a side effect of the command is that it sets up the user namespace.
 
-Instead of using _podman-usernamespace.service_, another solution could have been to create a dependency on
-a systemd user service that performs a container image pull
-(i.e `ExecStart=/usr/bin/podman pull ghcr.io/eriksjolund/socket-activate-echo:latest`)
-
 > **Note**
 > __runc__ supports `RestrictAddressFamilies=AF_UNIX AF_NETLINK` but before version 1.1.3,
 > runc had a bug that limited the number of socket-activated sockets to max 2.
