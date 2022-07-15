@@ -152,7 +152,7 @@ Test the echo server with the program __socat__
 $ echo hello | socat - tcp4:127.0.0.1:9000
 ```
 
-As expected the service fails because Podman is blocked from establishing connections to the container registry.
+As expected the service fails because Podman is blocked from establishing a connection to the container registry.
 
 __journalctl__ shows such this error  message
 
