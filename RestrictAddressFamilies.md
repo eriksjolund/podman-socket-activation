@@ -72,14 +72,14 @@ WantedBy=default.target
 
 Add the two lines
 ```
-After=podman-usernamepsace.service
+After=podman-usernamespace.service
 BindTo=podman-usernamespace.service
 ```
 under the line `[Unit]` with the program __sed__ (or just use an editor)
 
 ```
 $ sed -i '/\[Unit\]/a \
-After=podman-usernamepsace.service
+After=podman-usernamespace.service
 BindTo=podman-usernamespace.service' ~/.config/systemd/user/restricted-echo.service
 ```
 
@@ -196,11 +196,11 @@ For instance, the unit _echo-restrict.service_ depends on _podman-usernamespace.
 
 ```
 $ grep podman-usernamespace.service ~/.config/systemd/user/echo-restrict.service
-After=podman-usernamepsace.service
+After=podman-usernamespace.service
 BindTo=podman-usernamespace.service
 ```
 
-The service _podman-usernamepsace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. That
+The service _podman-usernamespace.service_ is a `Type=oneshot` service that executes `podman unshare /bin/true`. That
 command is normally used for other things, but a side effect of the command is that it sets up the user namespace.
 
 Instead of using _podman-usernamespace.service_, another solution could have been to create a dependency on
