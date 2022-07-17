@@ -10,11 +10,10 @@ Subtitle: "_Learn how to restrict network access for a containerized network ser
 Network services that are facing the public internet are exposed to the risk of being attacked. There are different ways of how we could better protect them.
 For instance, using strong passwords and keeping the systems up to date with the latest security updates, will reduce the risk of an intrusion.
 
-Another advice is trying to minimize the potential damages caused by a compromised network daemon. SELinux provides such protection.
-An SELinux restricted system has rules set up that confines network daemons so that they are only allowed to do only what they normally do.
-Often this confinement has reduced the impact of security vulnerabilities in network daemons. An intruder might gain unauthorized access but the intruder would still be restricted by the same SELinux rules as the network daemon.
-
-There is a new feature in Podman that also can reduce the impact of security vulnerabilities in network daemons.
+Another advice is trying to minimize the potential damages caused by a compromised network daemon.
+Assuming the compromise is not caused by a kernel bug, the intruder will not be able to gain any more privileges
+than those of the running network daemon. A good strategy is therefore to run the network daemon with as few privileges as possible.
+There is a new feature in Podman that opens up the possibility to run a network daemon with more limited access to the internet.
 Since version 3.4.0 Podman supports socket activation of containers, i.e., passing a socket-activated socket to the container.
 Interestingly, it's possible for a container to use such a socket-activated socket even when the network is disabled, (i.e., when the option __--network=none__ is given to `podman run`).
 
