@@ -145,8 +145,8 @@ $ podman exec -ti echo /bin/bash -c "curl https://podman.io" | head -2
 
 Using socket activation together with the option __--network=none__ is a new way to secure network daemons.
 An intruder would have more limited possibilities to use a compromised container as a starting point for attacks on other PCs.
-The [Podman socket activation tutorial](https://github.com/containers/podman/blob/main/docs/tutorials/socket_activation.md) provides
-more information about socket activation support in Podman.
+The [socket activation tutorial](https://github.com/containers/podman/blob/main/docs/tutorials/socket_activation.md) provides
+more information about the socket activation support in Podman.
 
 ### Note about SELinux
 
