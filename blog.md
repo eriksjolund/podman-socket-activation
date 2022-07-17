@@ -13,7 +13,7 @@ For instance, using strong passwords and keeping the systems up to date with the
 Another advice is trying to minimize the potential damages caused by a compromised network daemon.
 Assuming the compromise is not caused by a kernel bug, the intruder will not be able to gain any more privileges
 than those of the running network daemon. A good strategy is therefore to run the network daemon with as few privileges as possible.
-There is a new feature in Podman that lets you run a network daemon with more limited access to the internet.
+There is a new feature in Podman that lets you run a network daemon with more limited internet access.
 Since version 3.4.0 Podman supports socket activation of containers, i.e., passing a socket-activated socket to the container.
 Interestingly, it's possible for a container to use such a socket-activated socket even when the network is disabled (i.e., when the option __--network=none__ is given to `podman run`).
 
