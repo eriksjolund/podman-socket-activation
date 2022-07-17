@@ -1,6 +1,3 @@
-# Currently a draft
-## Podman socket activation
-
 Title: "_Use socket activation with Podman to get improved security_"
 
 Subtitle: "_Learn how to restrict network access for a containerized network server_"
