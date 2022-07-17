@@ -110,14 +110,14 @@ Assume an intruder has shell access in the container. The situation can be simul
 commands with `podman exec`.
 
 ```
-$ podman exec -ti echo /bin/bash -c "ip -brief addr"
+$ podman exec -ti echo /usr/sbin/ip -brief addr
 lo               UNKNOWN        127.0.0.1/8 ::1/128
 ```
 
 Only the loopback interface is available.
 
 ```
-$ podman exec -ti echo /bin/bash -c "curl https://podman.io"
+$ podman exec -ti echo /usr/bin/curl https://podman.io
 curl: (6) Could not resolve host: podman.io
 ```
 
@@ -128,7 +128,7 @@ If we instead remove the option __--network=none__ and run the same commands,
 we see that the network interface _tap0_ is available
 
 ```
-$ podman exec -ti echo /bin/bash -c "ip -brief addr"
+$ podman exec -ti echo /usr/sbin/ip -brief addr
 lo               UNKNOWN        127.0.0.1/8 ::1/128
 tap0             UNKNOWN        10.0.2.100/24 fd00::9847:3aff:fe5d:97ea/64 fe80::9847:3aff:fe5d:97ea/64
 ```
@@ -136,7 +136,7 @@ tap0             UNKNOWN        10.0.2.100/24 fd00::9847:3aff:fe5d:97ea/64 fe80:
 and that __curl__ is able to download the web page.
 
 ```
-$ podman exec -ti echo /bin/bash -c "curl https://podman.io" | head -2
+$ podman exec -ti echo /usr/bin/curl https://podman.io | head -2
 <!doctype html>
 <html lang="en-US">
 ```
