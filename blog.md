@@ -58,7 +58,7 @@ WantedBy=default.target
 
 `%h` is a systemd specifier that expands to the user's home directory.
 
-After editing the unit files, systemd needs to reload it's configuration
+After editing the unit files, systemd needs to reload its configuration
 
 ```
 $ systemctl --user daemon-reload
