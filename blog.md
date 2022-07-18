@@ -19,7 +19,6 @@ Not all software daemons support socket activation but it's getting more popular
 ### An echo server example
 
 Let's try out [socket-activate-echo](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo), a simple echo server container that supports socket activation.
-For this we need to use a Linux system because socket activation is provided by systemd.
 
 Create the container
 
