@@ -14,7 +14,7 @@ There is a new feature in Podman that lets us run network daemons with restricte
 Since version 3.4.0 Podman supports socket activation of containers, i.e., passing a socket-activated socket to the container.
 Interestingly, it's possible for a container to use such a socket-activated socket even when the network is disabled (i.e., when the option __--network=none__ is given to `podman run`).
 
-Not all software daemons support socket activation but it's getting more popular. For instance Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn, CUPS all have socket activation support.
+Not all software daemons support socket activation but it's getting more popular. For instance, Apache HTTP server, MariaDB, DBUS, PipeWire, Gunicorn and CUPS all have socket activation support.
 
 ### An echo server example
 
