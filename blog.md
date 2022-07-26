@@ -23,7 +23,7 @@ Let's try out [socket-activate-echo](https://github.com/eriksjolund/socket-activ
 Create the container
 
 ```
-$ podman create --rm --name echo --network none ghcr.io/eriksjolund/socket-activate-echo
+$ podman create --rm --name echo --network=none ghcr.io/eriksjolund/socket-activate-echo
 ```
 
 Generate the systemd service unit
@@ -42,10 +42,10 @@ sockets that the container should use
 Description=echo server
 
 [Socket]
-ListenStream=127.0.0.1:3000
-ListenDatagram=127.0.0.1:3000
-ListenStream=[::1]:3000
-ListenDatagram=[::1]:3000
+ListenStream=127.0.0.1:5040
+ListenDatagram=127.0.0.1:5040
+ListenStream=[::1]:5040
+ListenDatagram=[::1]:5040
 ListenStream=%h/echo_stream_sock
 
 [Install]
@@ -53,12 +53,6 @@ WantedBy=default.target
 ```
 
 `%h` is a systemd specifier that expands to the user's home directory.
-
-After editing the unit files, systemd needs to reload its configuration
-
-```
-$ systemctl --user daemon-reload
-```
 
 Start the socket unit
 
@@ -69,13 +63,13 @@ $ systemctl --user start echo.socket
 Test the echo server with the program __socat__
 
 ```
-$ echo hello | socat - tcp4:127.0.0.1:3000
+$ echo hello | socat - tcp4:127.0.0.1:5040
 hello
-$ echo hello | socat - tcp6:[::1]:3000
+$ echo hello | socat - tcp6:[::1]:5040
 hello
-$ echo hello | socat - udp4:127.0.0.1:3000
+$ echo hello | socat - udp4:127.0.0.1:5040
 hello
-$ echo hello | socat - udp6:[::1]:3000
+$ echo hello | socat - udp6:[::1]:5040
 hello
 $ echo hello | socat - unix:$HOME/echo_stream_sock
 hello
@@ -123,8 +117,20 @@ curl: (6) Could not resolve host: podman.io
 __curl__ is not able to download any web page. The network interface _tap0_ that rootless
 Podman normally uses to access the internet is not available.
 
-If we instead remove the option __--network=none__ and run the same commands,
-we see that the network interface _tap0_ is available
+If we instead remove the option __--network=none__ from the file _~/.config/systemd/user/echo.service_,
+and get the service up and running with the new configuration
+
+```
+$ sed -i "s/--network=none//" ~/.config/systemd/user/echo.service
+$ systemctl --user daemon-reload
+$ systemctl --user stop echo.service
+Warning: Stopping echo.service, but it can still be activated by:
+  echo.socket
+$ echo hello | socat - tcp4:127.0.0.1:5040
+hello
+```
+
+and then run the same `podman exec` commands, we see that the network interface _tap0_ is available
 
 ```
 $ podman exec -ti echo /usr/sbin/ip -brief addr
