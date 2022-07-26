@@ -117,7 +117,7 @@ curl: (6) Could not resolve host: podman.io
 __curl__ is not able to download any web page. The network interface _tap0_ that rootless
 Podman normally uses to access the internet is not available.
 
-If we instead remove the option __--network=none__ from the file _~/.config/systemd/user/echo.service_,
+If we instead remove the option __--network=none__ from the file _~/.config/systemd/user/echo.service_
 and get the service up and running with the new configuration
 
 ```
